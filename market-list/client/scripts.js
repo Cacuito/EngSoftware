@@ -44,42 +44,41 @@ const insertButton = (parent) => {
 
 
 
-const setupEditMode = (row, editCell) => { // Deve receber 'editCell'
-  
+const setupEditMode = (row, editCell) => { 
   let editButton = document.createElement("button");
   editButton.textContent = "Editar";
   editButton.className = "editBtn"; 
-  
-  // Adiciona o botão diretamente na célula de edição fornecida
   editCell.appendChild(editButton); 
 
   editButton.onclick = function () {
-    let nameCell = row.cells[0];   
+    let nameCell = row.cells[0];
     let qtyCell = row.cells[1];    
     let priceCell = row.cells[2];  
 
     const originalName = nameCell.textContent;
 
     if (editButton.textContent === "Editar") {
-      // Modo Edição
+      nameCell.innerHTML = `<input type='text' value='${nameCell.textContent}' class='editInput'>`;
       qtyCell.innerHTML = `<input type='text' value='${qtyCell.textContent}' class='editInput'>`;
       priceCell.innerHTML = `<input type='text' value='${priceCell.textContent}' class='editInput'>`;
       editButton.textContent = "Salvar";
     } else {
-      // Modo Salvar
+      let newName = nameCell.querySelector('input').value;
       let newQty = qtyCell.querySelector('input').value;
       let newPrice = priceCell.querySelector('input').value;
 
-      if (isNaN(newQty) || isNaN(newPrice) || newQty === '' || newPrice === '') {
-        alert("Quantidade e Valor devem ser números e não podem estar vazios.");
+      if (newName === '' || isNaN(newQty) || isNaN(newPrice) || newQty === '' || newPrice === '') {
+        alert("Todos os campos devem ser preenchidos e Qtd/Valor devem ser números.");
         return;
       }
 
-      updateItem(originalName, newQty, newPrice);
+      updateItem(originalName, newName, newQty, newPrice);
 
+      nameCell.innerHTML = newName;
       qtyCell.innerHTML = newQty;
       priceCell.innerHTML = newPrice;
       editButton.textContent = "Editar";
+      
     }
   };
 };
@@ -113,12 +112,14 @@ const deleteItem = (item) => {
 }
 
 
-const updateItem = async (originalName, newQuantity, newPrice) => {
+const updateItem = async (originalName, newName, newQuantity, newPrice) => {
   const formData = new FormData();
+  formData.append('nome', newName); 
   formData.append('quantidade', newQuantity);
   formData.append('valor', newPrice);
 
   let url = 'http://127.0.0.1:5000/produto?nome=' + originalName;
+  
   fetch(url, {
     method: 'put',
     body: formData

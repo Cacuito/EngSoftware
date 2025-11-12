@@ -1,3 +1,5 @@
+# Em src/app/routes/product_routes.py
+
 from urllib.parse import unquote
 
 from flask_openapi3 import Tag
@@ -7,18 +9,18 @@ from src.app.schemas import (
     ProdutoBuscaPorNomeSchema,
     ProdutoBuscaSchema,
     ProdutoDelSchema,
-    ProdutoSchema,
+    ProdutoSchema,  # Espera o Schema completo
     ProdutoViewSchema,
     apresenta_produto,
     apresenta_produtos,
-    ProdutoUpdateSchema,
+    # Você não precisa mais do ProdutoUpdateSchema
 )
 from src.core.exceptions import ProductAlreadyExists, ProductNotFound
 from src.core.use_cases.add_product import AddProductUseCase
 from src.core.use_cases.delete_product import DeleteProductUseCase
 from src.core.use_cases.get_product import GetProductUseCase
 from src.core.use_cases.list_products import ListProductsUseCase
-from src.core.use_cases.update_product import UpdateProductUseCase
+from src.core.use_cases.update_product import UpdateProductUseCase 
 
 produto_tag = Tag(
     name="Produto",
@@ -81,25 +83,26 @@ def register_product_routes(
         except ProductNotFound as error:
             return {"mesage": str(error)}, 404
 
-    #Rota PUT (Atualizar)
+    # Rota PUT (Atualizar)
     @app.put(
         "/produto",
         tags=[produto_tag],
         responses={
-            "200": ProdutoViewSchema,  # Retorna o produto atualizado
-            "404": ErrorSchema,      # Produto não encontrado
+            "200": ProdutoViewSchema,
+            "404": ErrorSchema,
             "400": ErrorSchema
         },
     )
-    def update_produto(query: ProdutoBuscaPorNomeSchema, form: ProdutoUpdateSchema):
-        """Atualiza a quantidade e o valor de um produto existente na base."""
+    def update_produto(query: ProdutoBuscaPorNomeSchema, form: ProdutoSchema):
+        """Atualiza os dados de um produto existente na base."""
         
         nome_original = unquote(unquote(query.nome))
         
         try:
-            # Chama o caso de uso SÓ com os dados necessários
+            # Passa todos os novos dados (incluindo o novo nome) para o caso de uso
             produto_atualizado = update_use_case.execute(
                 original_name=nome_original,
+                new_name=form.nome,
                 new_quantity=form.quantidade,
                 new_value=form.valor
             )
